@@ -1,0 +1,20 @@
+{
+  "name": "@synartisis/htmlparser",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "",
+  "main": "html-parser.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "parse5": "^7.1.2",
+    "parse5-htmlparser2-tree-adapter": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.1"
+  }
+}
