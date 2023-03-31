@@ -5,6 +5,22 @@ import * as content from './html-content.js'
 
 describe('test custom methods', () => {
 
+  it('findOne', async () => {
+    throw new Error('not implemented')
+  })
+
+  it('findAll', async () => {
+    throw new Error('not implemented')
+  })
+
+  it('qs', async () => {
+    throw new Error('not implemented')
+  })
+
+  it('qsa', async () => {
+    throw new Error('not implemented')
+  })
+
   it('innerHTML', async () => {
     const fragment = html.parseFragment(content.HTMLFragment)
     const child1 = html.qs(fragment, o => o.type === 'tag' && o.attribs.id === 'child1')

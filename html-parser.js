@@ -1,12 +1,13 @@
 import * as parse5 from 'parse5'
-import { adapter } from 'parse5-htmlparser2-tree-adapter'
+import * as htmlparser2Adapter from 'parse5-htmlparser2-tree-adapter'
+import * as domhandler from 'domhandler'
+export { domhandler }
 
 /**
- * @typedef {import("domhandler").Document} Document
- * @typedef {import("domhandler").Element} Element
- * @typedef {import("domhandler").Text} Text
- * @typedef { Element | Text } Node
-*/
+ * @typedef { 'tag' | 'root' | 'text' } NodeType
+ */
+
+const { adapter } = htmlparser2Adapter
 
 
 /** @param {string} html */
@@ -15,59 +16,38 @@ export function parseHtml(html) {
 }
 
 
-/** @param {string} html */
-export function parseFragment(html, fragmentContext = createElement('div')) {
+/** 
+ * @param {string} html 
+ * @param {domhandler.ParentNode?} fragmentContext
+ * */
+export function parseFragment(html, fragmentContext = null) {
   return parse5.parseFragment(fragmentContext, html, { treeAdapter: adapter })
 }
 
 
-/** @param {Element | Document} node */
+/** @param {domhandler.ParentNode} node */
 export function serialize(node) {
   return parse5.serialize(node, { treeAdapter: adapter })
 }
 
 
-/** @param {Element | Document} node */
+/** @param {domhandler.AnyNode} node */
 export function serializeOuter(node) {
   return parse5.serializeOuter(node, { treeAdapter: adapter })
 }
 
 
-/** @type {(tagName: string, attributes?: {[name: string]: string}) => Element} */
+/** 
+ * @param {string} tagName
+ * @param {{[name: string]: string}} [attributes={}]
+ * */
 export function createElement(tagName, attributes = {}) {
   const attrs = Object.keys(attributes).map(name => ({ name, value: attributes[name] }))
   return adapter.createElement(tagName, parse5.html.NS.HTML, attrs)
 }
 
 
-/** @type {(node: Element | Document, predicate: (node: Node) => boolean) => Node | undefined} */
-export function qs(node, predicate) {
-  let result
-  if (node.type !== 'root' && predicate(node)) {
-    result = node
-  } else {
-    for (let child of node.children) {
-      if (adapter.isElementNode(child)) result = qs(child, predicate)
-      if (child.type === 'text' && predicate(child)) result = child
-      if (result) break
-    }
-  }
-  return result
-}
-
-
-/** @type {(node: Element | Document, predicate: (node: Node) => boolean, res?: Node[]) => Node[]} */
-export function qsa(node, predicate, res = []) {
-  if (node.type !== 'root' && predicate(node)) res.push(node)
-  for (let child of node.children) {
-    if (adapter.isElementNode(child)) qsa(child, predicate, res)
-    if (child.type === 'text' && predicate(child)) res.push(child)
-  }
-  return res
-}
-
-
-/** @type {(newChild: Node, refChild: Node) => void} */
+/** @type {(newChild: domhandler.ChildNode, refChild: domhandler.ChildNode) => void} */
 export function insertBefore(newChild, refChild) {
   if (!newChild || !refChild) throw new Error('missing parameter')
   if (!refChild.parent) throw new Error('insertBefore Error: refChild has no parent element')
@@ -75,21 +55,21 @@ export function insertBefore(newChild, refChild) {
 }
 
 
-/** @type {(parentNode: Element, newNode: Node) => void} */
+/** @type {(parentNode: domhandler.ParentNode, newNode: domhandler.ChildNode) => void} */
 export function appendChild(parentNode, newNode) {
   if (!parentNode || !newNode) throw new Error('missing parameter')
   adapter.appendChild(parentNode, newNode)
 }
 
 
-/** @type {(parentNode: Element, text: string) => void} */
+/** @type {(parentNode: domhandler.ParentNode, text: string) => void} */
 export function insertText(parentNode, text) {
   if (!parentNode || text == null) throw new Error('missing parameter')
   return adapter.insertText(parentNode, text)
 }
 
 
-/** @param {Node} node */
+/** @param {domhandler.ChildNode} node */
 export function detachNode(node) {
   if (!node) throw new Error('missing parameter')
   adapter.detachNode(node)
@@ -104,7 +84,75 @@ export function detachNode(node) {
 
 
 
-/** @type {(el: Element, html: string) => void} */
+/** 
+ * searches for any node matching the predicate
+ * @type {(node: domhandler.ParentNode, predicate: (node: domhandler.AnyNode) => boolean, type?: NodeType) => domhandler.AnyNode | undefined} 
+ */
+export function findOne(node, predicate, type) {
+  let result
+  if ((!type || node.type === type) && predicate(node)) {
+    result = node
+  } else {
+    for (let child of node.children) {
+      if (adapter.isElementNode(child)) result = findOne(child, predicate)
+      if ((!type || node.type === type) && predicate(child)) result = child
+      if (result) break
+    }
+  }
+  return result
+}
+
+
+/** 
+ * searches for any nodes matching the predicate
+ * @type {(node: domhandler.ParentNode, predicate: (node: domhandler.AnyNode) => boolean, res?: domhandler.AnyNode[]) => domhandler.AnyNode[]} 
+ * */
+export function findAll(node, predicate, res = []) {
+  if (predicate(node)) res.push(node)
+  for (let child of node.children) {
+    if (adapter.isElementNode(child)) {
+      findAll(child, predicate, res)
+    } else {
+      if (predicate(child)) res.push(child)
+    }
+  }
+  return res
+}
+
+
+
+/** 
+ * searches for an Element matching the predicate
+ * @type {(node: domhandler.ParentNode, predicate: (node: domhandler.Element) => boolean) => domhandler.Element | undefined}
+ * */
+export function qs(node, predicate) {
+  let result
+  if (node.type === 'tag' && predicate(node)) {
+    result = node
+  } else {
+    for (let child of node.children) {
+      if (adapter.isElementNode(child)) result = qs(child, predicate)
+      if (result) break
+    }
+  }
+  return result
+}
+
+
+/** 
+ * searches for any Elements matching the predicate
+ * @type {(node: domhandler.ParentNode, predicate: (node: domhandler.Element) => boolean, res?: domhandler.Element[]) => domhandler.Element[]} 
+ * */
+export function qsa(node, predicate, res = []) {
+  if (node.type === 'tag' && predicate(node)) res.push(node)
+  for (let child of node.children) {
+    if (adapter.isElementNode(child)) qsa(child, predicate, res)
+  }
+  return res
+}
+
+
+/** @type {(el: domhandler.ParentNode, html: string) => void} */
 export function innerHTML(el, html) {
   if (!el || html == null) throw new Error('missing parameter')
   if (!(typeof html === 'string')) throw new TypeError('innerHTML: html param must be a string')
@@ -116,7 +164,7 @@ export function innerHTML(el, html) {
 }
 
 
-/** @param {Element} el */
+/** @param {domhandler.Element} el */
 export function cloneElement(el) {
   const newEl = createElement(el.tagName)
   adapter.adoptAttributes(newEl, adapter.getAttrList(el))
@@ -132,7 +180,7 @@ export function cloneElement(el) {
 }
 
 
-/** @param {Document} document */
+/** @type {(document: domhandler.Document) => domhandler.Element | undefined} */
 export function documentBody(document) {
-  return qs(document, el => el.type === 'tag' && el.name === 'body')
+  return qs(document, el => el.name === 'body')
 }
