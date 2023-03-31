@@ -2,9 +2,6 @@ import * as parse5 from 'parse5'
 import { adapter } from 'parse5-htmlparser2-tree-adapter'
 
 /**
- * @typedef {import("domhandler").AnyNode} AnyNode
- * @typedef {import("domhandler").ParentNode} ParentNode
- * @typedef {import("domhandler").Node} Node
  * @typedef {import("domhandler").Element} Element
  */
 
@@ -111,6 +108,7 @@ export function remove(el) {
  */
 
 
+
 /** @type {(el: Element, html: string) => void} */
 export function innerHTML(el, html) {
   if (!el || html == null) throw new Error('missing parameter')
@@ -124,8 +122,6 @@ export function innerHTML(el, html) {
     }
   }
 }
-
-
 
 
 /** @param {Element} el */

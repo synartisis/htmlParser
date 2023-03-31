@@ -5,7 +5,9 @@
   "description": "",
   "main": "html-parser.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "preversion": "npm test",
+    "prepublish": "npm test"
   },
   "keywords": [],
   "author": "",
