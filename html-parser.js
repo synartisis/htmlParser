@@ -27,9 +27,15 @@ export function serialize(node) {
 }
 
 
-/** @type {(tagName: string, attributes: {[name: string]: string}) => Element} */
+/** @param {Element} node */
+export function serializeOuter(node) {
+  return parse5.serializeOuter(node, { treeAdapter: adapter })
+}
+
+
+/** @type {(tagName: string, attributes?: {[name: string]: string}) => Element} */
 export function createElement(tagName, attributes = {}) {
-  const attrs = Object.keys(attributes).map(name => ({ name, value: attributes[name], namespace: parse5.html.NS.HTML, prefix: '' }))
+  const attrs = Object.keys(attributes).map(name => ({ name, value: attributes[name] }))
   return adapter.createElement(tagName, parse5.html.NS.HTML, attrs)
 }
 
@@ -99,14 +105,6 @@ export function remove(el) {
 
 
 
-/** @type {(newChild: Element, refChild: Element) => void} */
-// export function insertAfter(newChild, refChild) {
-//   if (!newChild || !refChild) throw new Error('missing parameter')
-//   if (!refChild.parent) throw new Error('insertAfter Error: refChild has no parent element')
-//   adapter.insertBefore(refChild.parent, refChild, newChild)
-// }
-
-
 
 /**
  *   CUSTOM FUNCTIONS
@@ -132,16 +130,16 @@ export function innerHTML(el, html) {
 
 /** @param {Element} el */
 export function clone(el) {
-  // must think what to do with non-element children
-  throw new Error('not implemented')
-  const newEl = createElement(el.tagName, { ...el.attribs })
-  // adapter.adoptAttributes(newEl, adapter.getAttrList(el))
+  const newEl = createElement(el.tagName)
+  adapter.adoptAttributes(newEl, adapter.getAttrList(el))
   const children = adapter.getChildNodes(el)
-  if (children) {
-    for (const child of children) {
-      const newChild = clone(child)
-      append(newEl, newChild)
+  for (const child of children) {
+    let newChild
+    if (adapter.isElementNode(child)) {
+      newChild = clone(child)
+      appendChild(newEl, newChild)
     }
+    if (adapter.isTextNode(child)) adapter.insertText(newEl, child.data)
   }
   return newEl
 }
