@@ -1,36 +1,12 @@
 import assert from 'node:assert'
 import * as html from '../html-parser.js'
-
-
-const contentHTML = /*html*/`
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-  </head>
-  <body>
-    <div>
-      simple document
-    </div>
-  </body>
-  </html>
-`
-
-const contentFragment = /*html*/`
-  <section>
-    <div id="child1">child1 content</div>
-    <div id="child2">child2 content</div>
-  </section>
-`
+import * as content from './html-content.js'
 
 
 describe('test custom methods', () => {
 
   it('innerHTML', async () => {
-    const fragment = html.parseFragment(contentFragment)
+    const fragment = html.parseFragment(content.HTMLFragment)
     const child1 = html.qs(fragment, o => o.type === 'tag' && o.attribs.id === 'child1')
     if (!child1 || child1.type !== 'tag') throw new assert.AssertionError({ message: 'error in fragment parsing' })
     html.innerHTML(child1, /*html*/`<span id="grandchild">grandchild content</span>`)
@@ -45,7 +21,7 @@ describe('test custom methods', () => {
   })
 
   it('cloneElement', async () => {
-    const fragment = html.parseFragment(contentFragment)
+    const fragment = html.parseFragment(content.HTMLFragment)
     const section = html.qs(fragment, o => o.type === 'tag' && o.name === 'section')
     if (!section || section.type !== 'tag') throw new assert.AssertionError({ message: 'error in fragment parsing' })
     const clonedSection = html.cloneElement(section)
@@ -53,7 +29,7 @@ describe('test custom methods', () => {
   })
 
   it('documentBody', async () => {
-    const doc = html.parseHtml(contentHTML)
+    const doc = html.parseHtml(content.HTMLDocument)
     const body = html.documentBody(doc)
     assert.notStrictEqual(body, undefined)
     assert.strictEqual(body?.type, 'tag')
