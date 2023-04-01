@@ -127,11 +127,11 @@ export function findAll(node, predicate, res = []) {
  * */
 export function qs(node, predicate) {
   let result
-  if ((node.type === 'tag' || node.type === 'script') && predicate(node)) {
+  if ((node.type === 'tag' || node.type === 'script' || node.type === 'style') && predicate(node)) {
     result = node
   } else {
     for (let child of node.children) {
-      if (child.type === 'tag' || child.type === 'script') result = qs(child, predicate)
+      if (child.type === 'tag' || child.type === 'script' || child.type === 'style') result = qs(child, predicate)
       if (result) break
     }
   }
@@ -144,9 +144,9 @@ export function qs(node, predicate) {
  * @type {(node: domhandler.ParentNode, predicate: (node: domhandler.Element) => boolean, res?: domhandler.Element[]) => domhandler.Element[]} 
  * */
 export function qsa(node, predicate, res = []) {
-  if ((node.type === 'tag' || node.type === 'script') && predicate(node)) res.push(node)
+  if ((node.type === 'tag' || node.type === 'script' || node.type === 'style') && predicate(node)) res.push(node)
   for (let child of node.children) {
-    if (child.type === 'tag' || child.type === 'script') qsa(child, predicate, res)
+    if (child.type === 'tag' || child.type === 'script' || child.type === 'style') qsa(child, predicate, res)
   }
   return res
 }
