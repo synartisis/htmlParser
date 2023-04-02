@@ -205,7 +205,7 @@ export function insertAdjacentHTML(el, position, html) {
   if (position === 'beforebegin') {
     const fragment = parseFragment(html, el)
     for (const child of fragment.children) {
-      insertBefore(el, child)
+      insertBefore(child, el)
     }
     const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
     if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
