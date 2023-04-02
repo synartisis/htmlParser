@@ -52,6 +52,14 @@ describe('test custom methods', () => {
     assert.strictEqual(body?.name, 'body')
   })
 
+  it('documentHead', async () => {
+    const doc = html.parseHtml(content.HTMLDocument)
+    const head = html.documentBody(doc)
+    assert.notStrictEqual(head, undefined)
+    assert.strictEqual(head?.type, 'tag')
+    assert.strictEqual(head?.name, 'head')
+  })
+
 })
 
 

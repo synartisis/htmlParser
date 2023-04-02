@@ -3,9 +3,7 @@ import * as htmlparser2Adapter from 'parse5-htmlparser2-tree-adapter'
 import * as domhandler from 'domhandler'
 export { domhandler }
 
-/**
- * @typedef { 'tag' | 'root' | 'text' } NodeType
- */
+// TAG_TYPES: tag, script, style
 
 const { adapter } = htmlparser2Adapter
 
@@ -55,6 +53,14 @@ export function insertBefore(newChild, refChild) {
 }
 
 
+/** @type {(refNode: domhandler.ChildNode, text: string) => void} */
+export function insertTextBefore(refNode, text) {
+  if (!refNode || !text) throw new Error('missing parameter')
+  if (!refNode.parent) throw new Error('insertBefore Error: refNode has no parent element')
+  adapter.insertTextBefore(refNode.parent, text, refNode)
+}
+
+
 /** @type {(parentNode: domhandler.ParentNode, newNode: domhandler.ChildNode) => void} */
 export function appendChild(parentNode, newNode) {
   if (!parentNode || !newNode) throw new Error('missing parameter')
@@ -86,16 +92,16 @@ export function detachNode(node) {
 
 /** 
  * searches for any node matching the predicate
- * @type {(node: domhandler.ParentNode, predicate: (node: domhandler.AnyNode) => boolean, type?: NodeType) => domhandler.AnyNode | undefined} 
+ * @type {(node: domhandler.ParentNode, predicate: (node: domhandler.AnyNode) => boolean) => domhandler.AnyNode | undefined} 
  */
-export function findOne(node, predicate, type) {
+export function findOne(node, predicate) {
   let result
-  if ((!type || node.type === type) && predicate(node)) {
+  if (predicate(node)) {
     result = node
   } else {
     for (let child of node.children) {
       if (adapter.isElementNode(child)) result = findOne(child, predicate)
-      if ((!type || node.type === type) && predicate(child)) result = child
+      if (predicate(child)) result = child
       if (result) break
     }
   }
@@ -159,7 +165,7 @@ export function innerHTML(el, html) {
   el.children = []
   const fragment = parseFragment(html, el)
   for (const child of fragment.children) {
-    if (adapter.isElementNode(child)) appendChild(el, child)
+    appendChild(el, child)
   }
 }
 
@@ -184,3 +190,35 @@ export function cloneElement(el) {
 export function documentBody(document) {
   return qs(document, el => el.name === 'body')
 }
+
+
+/** @type {(document: domhandler.Document) => domhandler.Element | undefined} */
+export function documentHead(document) {
+  return qs(document, el => el.name === 'head')
+}
+
+
+/** @type {(el: domhandler.ParentNode, position:'beforebegin'|'afterbegin'|'beforeend'|'afterend', html: string) => domhandler.Element | undefined} */
+export function insertAdjacentHTML(el, position, html) {
+  if (!el || !position || !html) throw new Error('missing parameter')
+  if (typeof html !== 'string') throw new TypeError('insertAdjacentHTML: html param must be a string')
+  if (position === 'beforebegin') {
+    const fragment = parseFragment(html, el)
+    for (const child of fragment.children) {
+      insertBefore(el, child)
+    }
+    const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
+    if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
+  }
+  if (position === 'afterbegin') throw new Error(`insertAdjacentHTML: not implemented position ${position}`)
+  if (position === 'beforeend') {
+    const fragment = parseFragment(html, el)
+    for (const child of fragment.children) {
+      appendChild(el, child)
+    }
+    const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
+    if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
+  }
+  if (position === 'afterend') throw new Error(`insertAdjacentHTML: not implemented position ${position}`)
+}
+
