@@ -210,7 +210,17 @@ export function insertAdjacentHTML(el, position, html) {
     const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
     if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
   }
-  if (position === 'afterbegin') throw new Error(`insertAdjacentHTML: not implemented position ${position}`)
+  if (position === 'afterbegin') {
+    const firstChild = adapter.getFirstChild(el)
+    const fragment = parseFragment(html, el)
+    for (const child of fragment.children) {
+      if (firstChild) {
+        insertBefore(child, firstChild)
+      } else {
+        appendChild(el, child)
+      }
+    }
+  }
   if (position === 'beforeend') {
     const fragment = parseFragment(html, el)
     for (const child of fragment.children) {
@@ -219,6 +229,20 @@ export function insertAdjacentHTML(el, position, html) {
     const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
     if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
   }
-  if (position === 'afterend') throw new Error(`insertAdjacentHTML: not implemented position ${position}`)
+  if (position === 'afterend') {
+    if (!el.parentNode) throw new Error('insertAdjacentHTML - afterend: el must have a parentNode')
+    const nextSibling = el.nextSibling
+    const fragment = parseFragment(html, el)
+    for (const child of fragment.children) {
+      if (nextSibling) {
+        insertBefore(child, nextSibling)
+      } else {
+        appendChild(el.parentNode, child)
+      }
+    }
+    const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
+    if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
+
+  }
 }
 

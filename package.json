@@ -16,6 +16,9 @@
     "parse5": "^7.1.2",
     "parse5-htmlparser2-tree-adapter": "^7.0.0"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@types/mocha": "^10.0.1"
   }

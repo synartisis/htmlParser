@@ -28,7 +28,9 @@ export const HTMLDocument = /*html*/`
       </article>
     </section>
     <main>
-      <div id="div2"></div>
+      <div id="div2">
+        <div id="div2a"></div>
+      </div>
     </main>
     <script>
       // js content

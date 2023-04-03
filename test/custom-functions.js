@@ -5,46 +5,43 @@ import * as content from './html-content.js'
 
 describe('test custom methods', () => {
 
-  let doc = html.parseHtml(content.HTMLDocument)
-  const fragment = html.parseFragment(content.HTMLFragment)
-  const main = html.qs(doc, o => o.name === 'main')
-  if (!main) assert.fail('main not found')
-  const div2 = html.qs(doc, o => o.attribs.id === 'div2')
-  if (!div2) assert.fail('div#div2 not found')
-
-
   it('findOne', async () => {
-    const textNode = html.findOne(doc, node => node.type === 'text' && node.data.includes('text'))
+    const dom = getDOM()
+    const textNode = html.findOne(dom.doc, node => node.type === 'text' && node.data.includes('text'))
     assert.notStrictEqual(textNode, undefined)
     if (textNode?.type !== 'text') assert.fail('wrong node type')
     assert.strictEqual(textNode.data.trim(), 'text node')
   })
 
   it('findAll', async () => {
-    const nodes = html.findAll(doc, node => (node.type === 'text' && node.data.includes('text')) || (node.type === 'tag' && node.name === 'article'))
+    const dom = getDOM()
+    const nodes = html.findAll(dom.doc, node => (node.type === 'text' && node.data.includes('text')) || (node.type === 'tag' && node.name === 'article'))
     assert.strictEqual(Array.isArray(nodes), true, 'returns an Array')
     assert.strictEqual(nodes.length, 2)
   })
 
   it('qs', async () => {
-    const div = html.qs(doc, el => el.name === 'div')
+    const dom = getDOM()
+    const div = html.qs(dom.doc, el => el.name === 'div')
     assert.notStrictEqual(div, undefined, 'selects tags')
-    const script = html.qs(doc, el => el.type === 'script')
+    const script = html.qs(dom.doc, el => el.type === 'script')
     assert.notStrictEqual(script, undefined, 'selects script elements')
-    const style = html.qs(doc, el => el.type === 'style')
+    const style = html.qs(dom.doc, el => el.type === 'style')
     assert.notStrictEqual(style, undefined, 'selects style elements')
   })
 
   it('qsa', async () => {
-    const els = html.qsa(doc, el => el.type === 'tag' && el.name === 'section')
+    const dom = getDOM()
+    const els = html.qsa(dom.doc, el => el.type === 'tag' && el.name === 'section')
     assert.strictEqual(Array.isArray(els), true, 'returns an Array')
     assert.strictEqual(els.length, 1)
-    const scriptOrStyles = html.qsa(doc, el => el.type === 'script' || el.type === 'style')
+    const scriptOrStyles = html.qsa(dom.doc, el => el.type === 'script' || el.type === 'style')
     assert.strictEqual(scriptOrStyles.length, 2)
   })
 
 
   it('innerHTML', async () => {
+    const fragment = html.parseFragment(content.HTMLFragment)
     const child1 = html.qs(fragment, o => o.type === 'tag' && o.attribs.id === 'child1')
     if (!child1 || child1.type !== 'tag') throw new assert.AssertionError({ message: 'error in fragment parsing' })
     html.innerHTML(child1, /*html*/`<span id="grandchild">grandchild content</span>`)
@@ -59,6 +56,7 @@ describe('test custom methods', () => {
   })
 
   it('cloneElement', async () => {
+    const fragment = html.parseFragment(content.HTMLFragment)
     const section = html.qs(fragment, o => o.type === 'tag' && o.name === 'section')
     if (!section || section.type !== 'tag') throw new assert.AssertionError({ message: 'error in fragment parsing' })
     const clonedSection = html.cloneElement(section)
@@ -66,55 +64,84 @@ describe('test custom methods', () => {
   })
 
   it('documentBody', async () => {
-    const body = html.documentBody(doc)
+    const dom = getDOM()
+    const body = html.documentBody(dom.doc)
     assert.notStrictEqual(body, undefined)
     assert.strictEqual(body?.type, 'tag')
     assert.strictEqual(body?.name, 'body')
   })
 
   it('documentHead', async () => {
-    const head = html.documentHead(doc)
+    const dom = getDOM()
+    const head = html.documentHead(dom.doc)
     assert.notStrictEqual(head, undefined)
     assert.strictEqual(head?.type, 'tag')
     assert.strictEqual(head?.name, 'head')
   })
 
   it('insertAdjacentHTML - beforebegin', async () => {
-    const content = /*html*/`
-      <div id="child1">child1 content</div>
-      <div id="child2"><span id="grandchild">grandchild content</span></div>
-    `
-    html.insertAdjacentHTML(div2, 'beforebegin', content)
+    const dom = getDOM()
+    html.insertAdjacentHTML(dom.div2, 'beforebegin', content.HTMLFragment)
     assertEqualHTML(
-      html.serializeOuter(main),
+      html.serializeOuter(dom.main),
       /*html*/`
         <main>
-          ${content}
-          <div id="div2"></div>
+          ${content.HTMLFragment}
+          <div id="div2">
+            <div id="div2a"></div>
+          </div>
         </main>
       `
     )
   })
 
-  // ****** cannot test because doc is changed 
+  it('insertAdjacentHTML - afterbegin', async () => {
+    const dom = getDOM()
+    html.insertAdjacentHTML(dom.div2, 'afterbegin', content.HTMLFragment)
+    assertEqualHTML(
+      html.serializeOuter(dom.main),
+      /*html*/`
+        <main>
+          <div id="div2">
+            ${content.HTMLFragment}
+            <div id="div2a"></div>
+          </div>
+        </main>
+      `
+    )
+  })
 
-  // it('insertAdjacentHTML - beforeend', async () => {
-  //   const content = /*html*/`
-  //     <div id="child1">child1 content</div>
-  //     <div id="child2"><span id="grandchild">grandchild content</span></div>
-  //   `
-  //   html.insertAdjacentHTML(div2, 'beforeend', content)
-  //   assertEqualHTML(
-  //     html.serializeOuter(main),
-  //     /*html*/`
-  //       <main>
-  //         <div id="div2">
-  //           ${content}
-  //         </div>
-  //       </main>
-  //     `
-  //   )
-  // })
+  it('insertAdjacentHTML - beforeend', async () => {
+    const dom = getDOM()
+    html.insertAdjacentHTML(dom.div2, 'beforeend', content.HTMLFragment)
+    assertEqualHTML(
+      html.serializeOuter(dom.main),
+      /*html*/`
+        <main>
+          <div id="div2">
+            <div id="div2a"></div>
+            ${content.HTMLFragment}
+          </div>
+        </main>
+      `
+    )
+  })
+
+  it('insertAdjacentHTML - afterend', async () => {
+    const dom = getDOM()
+    html.insertAdjacentHTML(dom.div2, 'afterend', content.HTMLFragment)
+    assertEqualHTML(
+      html.serializeOuter(dom.main),
+      /*html*/`
+        <main>
+          <div id="div2">
+            <div id="div2a"></div>
+          </div>
+          ${content.HTMLFragment}
+        </main>
+      `
+    )
+  })
 
 })
 
@@ -128,4 +155,14 @@ function trimLines(content) {
 /** @type {(html1: string, html2: string) => void} */
 function assertEqualHTML(html1, html2) {
   assert.strictEqual(trimLines(html1), trimLines(html2))
+}
+
+/** @returns {{ doc: html.domhandler.Document, main: html.domhandler.Element, div2: html.domhandler.Element }} */
+function getDOM() {
+  const doc = html.parseHtml(content.HTMLDocument)
+  const main = html.qs(doc, o => o.name === 'main')
+  if (!main) assert.fail('main element not found')
+  const div2 = html.qs(doc, o => o.attribs.id === 'div2')
+  if (!div2) assert.fail('div#div2 not found')
+  return { doc, main, div2 }
 }
