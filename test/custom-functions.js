@@ -143,6 +143,16 @@ describe('test custom methods', () => {
     )
   })
 
+  it('createElementFromHTML', async () => {
+    const doubleFragment = content.HTMLFragment + content.HTMLFragment
+    const textContent = 'text only'
+    const correctElm = html.createElementFromHTML(content.HTMLFragment)
+    assert.notStrictEqual(correctElm, undefined)
+    assert.throws(() => { const errorElm = html.createElementFromHTML(doubleFragment) })
+    assert.throws(() => { const errorElm = html.createElementFromHTML(textContent) })
+    assert.strictEqual(correctElm.type === 'tag' && correctElm.name === 'section', true)
+  })
+
 })
 
 

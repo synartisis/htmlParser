@@ -246,3 +246,12 @@ export function insertAdjacentHTML(el, position, html) {
   }
 }
 
+
+/** @type {(html: string, elementContext?: domhandler.ParentNode | null) => domhandler.Element} */
+export function createElementFromHTML(html, elementContext) {
+  if (typeof html !== 'string') throw new TypeError('createElementFromHTML: html param must be a string')
+  const fragment = parseFragment(html, elementContext)
+  const childElements = qsa(fragment, o => o.parentNode === fragment)
+  if (childElements.length !== 1) throw new Error('createElementFromHTML: html must have exactly one root element')
+  return childElements[0]
+}
