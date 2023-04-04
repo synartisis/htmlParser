@@ -198,21 +198,19 @@ export function documentHead(document) {
 }
 
 
-/** @type {(el: domhandler.ParentNode, position:'beforebegin'|'afterbegin'|'beforeend'|'afterend', html: string) => domhandler.Element | undefined} */
+/** @type {(el: domhandler.ParentNode, position:'beforebegin'|'afterbegin'|'beforeend'|'afterend', html: string) => {[id: string]: domhandler.Element}} */
 export function insertAdjacentHTML(el, position, html) {
   if (!el || !position || !html) throw new Error('missing parameter')
   if (typeof html !== 'string') throw new TypeError('insertAdjacentHTML: html param must be a string')
+  if (!el.parentNode) throw new Error('insertAdjacentHTML - afterend: el must have a parentNode')
+  const fragment = parseFragment(html, el)
   if (position === 'beforebegin') {
-    const fragment = parseFragment(html, el)
     for (const child of fragment.children) {
       insertBefore(child, el)
     }
-    const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
-    if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
   }
   if (position === 'afterbegin') {
     const firstChild = adapter.getFirstChild(el)
-    const fragment = parseFragment(html, el)
     for (const child of fragment.children) {
       if (firstChild) {
         insertBefore(child, firstChild)
@@ -222,17 +220,12 @@ export function insertAdjacentHTML(el, position, html) {
     }
   }
   if (position === 'beforeend') {
-    const fragment = parseFragment(html, el)
     for (const child of fragment.children) {
       appendChild(el, child)
     }
-    const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
-    if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
   }
   if (position === 'afterend') {
-    if (!el.parentNode) throw new Error('insertAdjacentHTML - afterend: el must have a parentNode')
     const nextSibling = el.nextSibling
-    const fragment = parseFragment(html, el)
     for (const child of fragment.children) {
       if (nextSibling) {
         insertBefore(child, nextSibling)
@@ -240,10 +233,15 @@ export function insertAdjacentHTML(el, position, html) {
         appendChild(el.parentNode, child)
       }
     }
-    const childElements = fragment.children.filter(o => o.type === 'tag' || o.type === 'script' || o.type === 'style')
-    if (childElements.length === 1 && (childElements[0].type === 'tag' || childElements[0].type === 'script' || childElements[0].type === 'style')) return childElements[0]
-
   }
+  /** @type {{[id: string]: domhandler.Element}} */
+  const result = {}
+  for (const child of fragment.children) {
+    if ((child.type === 'tag' || child.type === 'script' || child.type === 'style') && !!child.attribs.id) {
+      result[child.attribs.id] = child
+    }
+  }
+  return result
 }
 
 

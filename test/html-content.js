@@ -40,9 +40,14 @@ export const HTMLDocument = /*html*/`
 `
 
 
+export const HTMLFragmentChildren = /*html*/`
+  <div id="child1">child1 content</div>
+  <div id="child2">child2 content</div>
+`
+
+
 export const HTMLFragment = /*html*/`
   <section>
-    <div id="child1">child1 content</div>
-    <div id="child2">child2 content</div>
+    ${HTMLFragmentChildren}
   </section>
 `

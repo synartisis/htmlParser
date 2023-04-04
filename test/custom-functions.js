@@ -79,6 +79,18 @@ describe('test custom methods', () => {
     assert.strictEqual(head?.name, 'head')
   })
 
+  it('insertAdjacentHTML - returns an element map', async () => {
+    const dom = getDOM()
+    const elementMap1 = html.insertAdjacentHTML(dom.div2, 'beforebegin', content.HTMLFragmentChildren)
+    assert.notStrictEqual(elementMap1, undefined)
+    assert.strictEqual(Object.keys(elementMap1).length, 2)
+    assert.notStrictEqual(elementMap1['child1'], undefined)
+    assert.notStrictEqual(elementMap1['child2'], undefined)
+    const elementMap2 = html.insertAdjacentHTML(dom.div2, 'beforebegin', content.HTMLFragment)
+    assert.strictEqual(Object.keys(elementMap2).length, 0)
+    assert.strictEqual(elementMap2['child1'], undefined)
+  })
+
   it('insertAdjacentHTML - beforebegin', async () => {
     const dom = getDOM()
     html.insertAdjacentHTML(dom.div2, 'beforebegin', content.HTMLFragment)
@@ -148,8 +160,8 @@ describe('test custom methods', () => {
     const textContent = 'text only'
     const correctElm = html.createElementFromHTML(content.HTMLFragment)
     assert.notStrictEqual(correctElm, undefined)
-    assert.throws(() => { const errorElm = html.createElementFromHTML(doubleFragment) })
-    assert.throws(() => { const errorElm = html.createElementFromHTML(textContent) })
+    assert.throws(() => { html.createElementFromHTML(doubleFragment) })
+    assert.throws(() => { html.createElementFromHTML(textContent) })
     assert.strictEqual(correctElm.type === 'tag' && correctElm.name === 'section', true)
   })
 
