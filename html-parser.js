@@ -55,7 +55,7 @@ export function insertBefore(newChild, refChild) {
 
 /** @type {(refNode: domhandler.ChildNode, text: string) => void} */
 export function insertTextBefore(refNode, text) {
-  if (!refNode || !text) throw new Error('missing parameter')
+  if (!refNode || text == null) throw new Error('missing parameter')
   if (!refNode.parent) throw new Error('insertBefore Error: refNode has no parent element')
   adapter.insertTextBefore(refNode.parent, text, refNode)
 }
