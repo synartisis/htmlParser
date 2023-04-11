@@ -8,9 +8,9 @@
     "./lib/types/*": "./lib/types/*"
   },
   "scripts": {
-    "preinstall": "cp node_modules/parse5/dist/tree-adapters/default.d.ts lib/types/parse5/tree-adapters/ && cp node_modules/parse5/dist/common/token.d.ts lib/types/parse5/common",
+    "copy-types": "cp node_modules/parse5/dist/tree-adapters/default.d.ts lib/types/parse5/tree-adapters/ && cp node_modules/parse5/dist/common/token.d.ts lib/types/parse5/common",
     "test": "mocha",
-    "preversion": "npm test",
+    "preversion": "npm run copy-types && npm test",
     "prepublish": "npm test"
   },
   "keywords": [],
