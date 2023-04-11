@@ -1,9 +1,9 @@
 {
-  "name": "@synartisis/htmlparser",
+  "name": "syn-html-parser",
   "version": "0.1.2",
   "type": "module",
   "description": "",
-  "main": "html-parser.js",
+  "exports": "./lib/syn-html-parser.js",
   "scripts": {
     "test": "mocha",
     "preversion": "npm test",
@@ -13,11 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "parse5": "^7.1.2",
-    "parse5-htmlparser2-tree-adapter": "^7.0.0"
-  },
-  "publishConfig": {
-    "access": "public"
+    "parse5": "^7.1.2"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1"

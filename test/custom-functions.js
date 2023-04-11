@@ -1,5 +1,6 @@
+import * as dom from '../node_modules/parse5/dist/tree-adapters/default.js'
 import assert from 'node:assert'
-import * as html from '../html-parser.js'
+import * as html from '../lib/syn-html-parser.js'
 import * as content from './html-content.js'
 
 
@@ -7,43 +8,44 @@ describe('test custom methods', () => {
 
   it('findOne', async () => {
     const dom = getDOM()
-    const textNode = html.findOne(dom.doc, node => node.type === 'text' && node.data.includes('text'))
-    assert.notStrictEqual(textNode, undefined)
-    if (textNode?.type !== 'text') assert.fail('wrong node type')
-    assert.strictEqual(textNode.data.trim(), 'text node')
+    const textNode = html.findOne(dom.doc, node => html.adapter.isTextNode(node) && node.value.includes('text'))
+    if (!textNode) assert.fail('text node not found')
+    if (!html.adapter.isTextNode(textNode)) assert.fail('should be a text node')
+    assert.strictEqual(textNode.value.trim(), 'text node')
   })
 
   it('findAll', async () => {
     const dom = getDOM()
-    const nodes = html.findAll(dom.doc, node => (node.type === 'text' && node.data.includes('text')) || (node.type === 'tag' && node.name === 'article'))
+    const nodes = html.findAll(dom.doc, node => 
+      (html.adapter.isTextNode(node) && node.value.includes('text')) || 
+      (html.adapter.isElementNode(node) && node.tagName === 'article'))
     assert.strictEqual(Array.isArray(nodes), true, 'returns an Array')
     assert.strictEqual(nodes.length, 2)
   })
 
   it('qs', async () => {
     const dom = getDOM()
-    const div = html.qs(dom.doc, el => el.name === 'div')
+    const div = html.qs(dom.doc, el => el.tagName === 'div')
     assert.notStrictEqual(div, undefined, 'selects tags')
-    const script = html.qs(dom.doc, el => el.type === 'script')
+    const script = html.qs(dom.doc, el => el.tagName === 'script')
     assert.notStrictEqual(script, undefined, 'selects script elements')
-    const style = html.qs(dom.doc, el => el.type === 'style')
+    const style = html.qs(dom.doc, el => el.tagName === 'style')
     assert.notStrictEqual(style, undefined, 'selects style elements')
   })
 
   it('qsa', async () => {
     const dom = getDOM()
-    const els = html.qsa(dom.doc, el => el.type === 'tag' && el.name === 'section')
+    const els = html.qsa(dom.doc, el => el.tagName === 'section')
     assert.strictEqual(Array.isArray(els), true, 'returns an Array')
     assert.strictEqual(els.length, 1)
-    const scriptOrStyles = html.qsa(dom.doc, el => el.type === 'script' || el.type === 'style')
+    const scriptOrStyles = html.qsa(dom.doc, el => el.tagName === 'script' || el.tagName === 'style')
     assert.strictEqual(scriptOrStyles.length, 2)
   })
 
-
   it('innerHTML', async () => {
     const fragment = html.parseFragment(content.HTMLFragment)
-    const child1 = html.qs(fragment, o => o.type === 'tag' && o.attribs.id === 'child1')
-    if (!child1 || child1.type !== 'tag') throw new assert.AssertionError({ message: 'error in fragment parsing' })
+    const child1 = html.qs(fragment, o => html.adapter.isElementNode(o) && o.attrs.find(a => a.name === 'id')?.value === 'child1')
+    if (!child1 || !html.adapter.isElementNode(child1)) throw assert.fail('error in fragment parsing')
     html.innerHTML(child1, /*html*/`<span id="grandchild">grandchild content</span>`)
     assertEqualHTML(
       html.serialize(fragment), 
@@ -57,8 +59,8 @@ describe('test custom methods', () => {
 
   it('cloneElement', async () => {
     const fragment = html.parseFragment(content.HTMLFragment)
-    const section = html.qs(fragment, o => o.type === 'tag' && o.name === 'section')
-    if (!section || section.type !== 'tag') throw new assert.AssertionError({ message: 'error in fragment parsing' })
+    const section = html.qs(fragment, o => html.adapter.isElementNode(o) && o.tagName === 'section')
+    if (!section || !html.adapter.isElementNode(section)) assert.fail('error in fragment parsing')
     const clonedSection = html.cloneElement(section)
     assertEqualHTML(html.serializeOuter(section), html.serializeOuter(clonedSection))
   })
@@ -66,17 +68,18 @@ describe('test custom methods', () => {
   it('documentBody', async () => {
     const dom = getDOM()
     const body = html.documentBody(dom.doc)
-    assert.notStrictEqual(body, undefined)
-    assert.strictEqual(body?.type, 'tag')
-    assert.strictEqual(body?.name, 'body')
+    if (!body) assert.fail('body element not found')
+    if (!html.adapter.isElementNode(body)) assert.fail('body element has wrong type')
+    assert.strictEqual(body.tagName, 'body')
   })
 
   it('documentHead', async () => {
     const dom = getDOM()
     const head = html.documentHead(dom.doc)
     assert.notStrictEqual(head, undefined)
-    assert.strictEqual(head?.type, 'tag')
-    assert.strictEqual(head?.name, 'head')
+    if (!head) assert.fail('head element not found')
+    if (!html.adapter.isElementNode(head)) assert.fail('head element has wrong type')
+    assert.strictEqual(head.tagName, 'head')
   })
 
   it('insertAdjacentHTML - returns an element map', async () => {
@@ -162,7 +165,7 @@ describe('test custom methods', () => {
     assert.notStrictEqual(correctElm, undefined)
     assert.throws(() => { html.createElementFromHTML(doubleFragment) })
     assert.throws(() => { html.createElementFromHTML(textContent) })
-    assert.strictEqual(correctElm.type === 'tag' && correctElm.name === 'section', true)
+    assert.strictEqual(html.adapter.isElementNode(correctElm) && correctElm.tagName === 'section', true)
   })
 
 })
@@ -179,12 +182,12 @@ function assertEqualHTML(html1, html2) {
   assert.strictEqual(trimLines(html1), trimLines(html2))
 }
 
-/** @returns {{ doc: html.domhandler.Document, main: html.domhandler.Element, div2: html.domhandler.Element }} */
+/** @returns {{ doc: dom.Document, main: dom.Element, div2: dom.Element }} */
 function getDOM() {
   const doc = html.parseHtml(content.HTMLDocument)
-  const main = html.qs(doc, o => o.name === 'main')
+  const main = html.qs(doc, o => o.tagName === 'main')
   if (!main) assert.fail('main element not found')
-  const div2 = html.qs(doc, o => o.attribs.id === 'div2')
+  const div2 = html.qs(doc, o => o.attrs.find(a => a.name === 'id')?.value === 'div2')
   if (!div2) assert.fail('div#div2 not found')
   return { doc, main, div2 }
 }
