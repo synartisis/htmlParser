@@ -3,8 +3,12 @@
   "version": "0.2.0",
   "type": "module",
   "description": "",
-  "exports": "./lib/syn-html-parser.js",
+  "exports": {
+    ".": "./lib/syn-html-parser.js",
+    "./lib/types/*": "./lib/types/*"
+  },
   "scripts": {
+    "preinstall": "cp node_modules/parse5/dist/tree-adapters/default.d.ts lib/types/parse5/tree-adapters/ && cp node_modules/parse5/dist/common/token.d.ts lib/types/parse5/common",
     "test": "mocha",
     "preversion": "npm test",
     "prepublish": "npm test"

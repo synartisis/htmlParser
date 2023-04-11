@@ -168,6 +168,20 @@ describe('test custom methods', () => {
     assert.strictEqual(html.adapter.isElementNode(correctElm) && correctElm.tagName === 'section', true)
   })
 
+  it('getAttributes', async () => {
+    const { doc, main } = getDOM()
+    const el = html.qs(doc, el => el.attrs.find(o => o.name === 'id')?.value === 'attribute tester')
+    if (!el) assert.fail('element with id "attribute tester" not found')
+    const attributes = html.getAttributes(el)
+    const mainAttributes = html.getAttributes(main)
+    assert.strictEqual(JSON.stringify(attributes), JSON.stringify({
+      id: 'attribute tester',
+      attr1: 'attr1 value',
+      attr2: 'attr2 value',
+    }))
+    assert.strictEqual(JSON.stringify(mainAttributes), JSON.stringify({}))
+  })
+
 })
 
 
@@ -182,7 +196,7 @@ function assertEqualHTML(html1, html2) {
   assert.strictEqual(trimLines(html1), trimLines(html2))
 }
 
-/** @returns {{ doc: dom.Document, main: dom.Element, div2: dom.Element }} */
+/** @returns {{ doc: html.Document, main: dom.Element, div2: dom.Element }} */
 function getDOM() {
   const doc = html.parseHtml(content.HTMLDocument)
   const main = html.qs(doc, o => o.tagName === 'main')
