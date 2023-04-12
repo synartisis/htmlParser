@@ -33,6 +33,13 @@ export const HTMLDocument = /*html*/`
       </div>
     </main>
     <div id="attribute tester" attr1="attr1 value" attr2="attr2 value"></div>
+    <div id="insert-after">
+      <div id="insert-after1"></div>
+      <div id="insert-after2"></div>
+    </div>
+    <template>
+      // template content
+    </template>
     <script>
       // js content
     </script>

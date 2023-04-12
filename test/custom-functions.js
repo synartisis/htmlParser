@@ -182,6 +182,28 @@ describe('test custom methods', () => {
     assert.strictEqual(JSON.stringify(mainAttributes), JSON.stringify({}))
   })
 
+  it('insertAfter', async () => {
+    const { doc } = getDOM()
+    const insertAfter = html.qs(doc, el => el.attrs.find(o => o.name === 'id')?.value === 'insert-after')
+    const insertAfter1 = html.qs(doc, el => el.attrs.find(o => o.name === 'id')?.value === 'insert-after1')
+    const insertAfter2 = html.qs(doc, el => el.attrs.find(o => o.name === 'id')?.value === 'insert-after2')
+    if (!insertAfter || !insertAfter1 || !insertAfter2) assert.fail('an element is not found')
+    const insertAfterNew = html.createElementFromHTML(/*html*/`<div id="insert-after-new"></div>`, insertAfter)
+    html.insertAfter(insertAfterNew, insertAfter2)
+    assertEqualHTML(html.serialize(insertAfter), /*html*/`
+      <div id="insert-after1"></div>
+      <div id="insert-after2"></div>
+      <div id="insert-after-new"></div>
+    `)
+    html.insertAfter(insertAfterNew, insertAfter1)
+    assertEqualHTML(html.serialize(insertAfter), /*html*/`
+      <div id="insert-after1"></div>
+      <div id="insert-after-new"></div>
+      <div id="insert-after2"></div>
+      <div id="insert-after-new"></div>
+    `)
+  })
+
 })
 
 
