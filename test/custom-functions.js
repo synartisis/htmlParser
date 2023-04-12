@@ -50,7 +50,7 @@ describe('test custom methods', () => {
     assertEqualHTML(
       html.serialize(fragment), 
       /*html*/`
-      <section>
+      <section attr1="attr1 value">
         <div id="child1"><span id="grandchild">grandchild content</span></div>
         <div id="child2">child2 content</div>
       </section>
@@ -59,8 +59,8 @@ describe('test custom methods', () => {
 
   it('cloneElement', async () => {
     const fragment = html.parseFragment(content.HTMLFragment)
-    const section = html.qs(fragment, o => html.adapter.isElementNode(o) && o.tagName === 'section')
-    if (!section || !html.adapter.isElementNode(section)) assert.fail('error in fragment parsing')
+    const section = html.qs(fragment, o => o.tagName === 'section')
+    if (!section) assert.fail('error in fragment parsing')
     const clonedSection = html.cloneElement(section)
     assertEqualHTML(html.serializeOuter(section), html.serializeOuter(clonedSection))
   })
@@ -209,6 +209,10 @@ describe('test custom methods', () => {
     const { doc } = getDOM()
     const el = html.qs(doc, el => el.attrs.find(o => o.name === 'id')?.value === 'attribute tester')
     if (!el) assert.fail('element with id "attribute tester" not found')
+    html.removeAttribute(el, 'unknown attr')
+    assertEqualHTML(html.serializeOuter(el), /*html*/`
+      <div id="attribute tester" attr1="attr1 value" attr2="attr2 value"></div>
+    `, 'remove unknown attribute')
     html.removeAttribute(el, 'attr1')
     assertEqualHTML(html.serializeOuter(el), /*html*/`
       <div id="attribute tester" attr2="attr2 value"></div>
@@ -235,9 +239,9 @@ function trimLines(content) {
   return content.split('\n').map(l => l.trim()).join('')
 }
 
-/** @type {(html1: string, html2: string) => void} */
-function assertEqualHTML(html1, html2) {
-  assert.strictEqual(trimLines(html1), trimLines(html2))
+/** @type {(html1: string, html2: string, message?: string | Error | undefined) => void} */
+function assertEqualHTML(html1, html2, message) {
+  assert.strictEqual(trimLines(html1), trimLines(html2), message)
 }
 
 /** @returns {{ doc: html.Document, main: dom.Element, div2: dom.Element }} */

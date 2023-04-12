@@ -56,7 +56,7 @@ export const HTMLFragmentChildren = /*html*/`
 
 
 export const HTMLFragment = /*html*/`
-  <section>
+  <section attr1="attr1 value">
     ${HTMLFragmentChildren}
   </section>
 `
