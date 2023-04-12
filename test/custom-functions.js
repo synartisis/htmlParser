@@ -204,6 +204,27 @@ describe('test custom methods', () => {
     `)
   })
 
+  it('removeAttribute', async () => {
+    const { doc } = getDOM()
+    const el = html.qs(doc, el => el.attrs.find(o => o.name === 'id')?.value === 'attribute tester')
+    if (!el) assert.fail('element with id "attribute tester" not found')
+    html.removeAttribute(el, 'attr1')
+    assertEqualHTML(html.serializeOuter(el), /*html*/`
+      <div id="attribute tester" attr2="attr2 value"></div>
+    `)
+  })
+
+  it('setAttribute', async () => {
+    const { doc } = getDOM()
+    const el = html.qs(doc, el => el.attrs.find(o => o.name === 'id')?.value === 'attribute tester')
+    if (!el) assert.fail('element with id "attribute tester" not found')
+    html.setAttribute(el, 'attr1', 'attr1 new value')
+    html.setAttribute(el, 'attr3', 'attr3 value')
+    assertEqualHTML(html.serializeOuter(el), /*html*/`
+      <div id="attribute tester" attr1="attr1 new value" attr2="attr2 value" attr3="attr3 value"></div>
+    `)
+  })
+
 })
 
 
