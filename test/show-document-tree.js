@@ -1,6 +1,8 @@
 import * as html from '../lib/syn-html-parser.js'
 import * as content from './html-content.js'
 
+// run: node test/show-document-tree.js [--distinct]
+
 const args = process.argv.splice(2)
 
 const doc = html.parseHtml(content.HTMLDocument)
