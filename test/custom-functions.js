@@ -202,6 +202,7 @@ describe('test custom methods', () => {
       <div id="insert-after2"></div>
       <div id="insert-after-new"></div>
     `)
+    if (insertAfterNew.parentNode !== insertAfter1.parentNode) assert.fail('parent node not set')
   })
 
   it('removeAttribute', async () => {
