@@ -38,6 +38,7 @@ export const HTMLDocument = /*html*/`
       <div id="insert-after1"></div>
       <div id="insert-after2"></div>
     </div>
+    <img src="IMG_SRC" alt="IMG_ALT">
     <template>
       // template content
     </template>
