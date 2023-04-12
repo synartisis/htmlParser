@@ -230,6 +230,16 @@ describe('test custom methods', () => {
     `)
   })
 
+  it('getAttribute', async () => {
+    const { doc } = getDOM()
+    const el = html.qs(doc, el => el.attrs.find(o => o.name === 'id')?.value === 'attribute tester')
+    if (!el) assert.fail('element with id "attribute tester" not found')
+    const attr1 = html.getAttribute(el, 'attr1')
+    if (attr1 !== 'attr1 value') assert.fail('wrong attr1 value')
+    const attrNotExist = html.getAttribute(el, 'not existent attribute')
+    if (attrNotExist !== undefined) assert.fail(`value of not existent attribute must be undefined`)
+  })
+
 })
 
 
