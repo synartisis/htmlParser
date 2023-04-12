@@ -11,6 +11,7 @@ export const HTMLDocument = /*html*/`
     </style>
   </head>
   <body>
+    <!-- comment content -->
     <div id="div1">
       div content
     </div>
