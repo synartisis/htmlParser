@@ -225,8 +225,9 @@ describe('test custom methods', () => {
     if (!el) assert.fail('element with id "attribute tester" not found')
     html.setAttribute(el, 'attr1', 'attr1 new value')
     html.setAttribute(el, 'attr3', 'attr3 value')
+    html.setAttribute(el, 'attr4', '')
     assertEqualHTML(html.serializeOuter(el), /*html*/`
-      <div id="attribute tester" attr1="attr1 new value" attr2="attr2 value" attr3="attr3 value"></div>
+      <div id="attribute tester" attr1="attr1 new value" attr2="attr2 value" attr3="attr3 value" attr4=""></div>
     `)
   })
 
