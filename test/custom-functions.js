@@ -1,7 +1,8 @@
-import * as dom from '../node_modules/parse5/dist/tree-adapters/default.js'
-import assert from 'node:assert'
+import * as assert from 'node:assert'
 import * as html from '../lib/syn-html-parser.js'
 import * as content from './html-content.js'
+
+/** @typedef {import('parse5').DefaultTreeAdapterMap} dom */
 
 
 describe('test custom methods', () => {
@@ -255,7 +256,7 @@ function assertEqualHTML(html1, html2, message) {
   assert.strictEqual(trimLines(html1), trimLines(html2), message)
 }
 
-/** @returns {{ doc: html.Document, main: dom.Element, div2: dom.Element }} */
+/** @returns {{ doc: dom['document'], main: dom['element'], div2: dom['element'] }} */
 function getDOM() {
   const doc = html.parseHtml(content.HTMLDocument)
   const main = html.qs(doc, o => o.tagName === 'main')

@@ -4,14 +4,14 @@
   "type": "module",
   "description": "",
   "exports": {
-    ".": "./lib/syn-html-parser.js",
-    "./lib/types/*": "./lib/types/*"
+    ".": "./lib/syn-html-parser.js"
   },
+  "types": "./lib/syn-html-parser.d.ts",
   "scripts": {
-    "copy-types": "cp node_modules/parse5/dist/tree-adapters/default.d.ts lib/types/parse5/tree-adapters/ && cp node_modules/parse5/dist/common/token.d.ts lib/types/parse5/common",
+    "create-types": "tsc --allowjs --declaration --emitdeclarationonly --lib esnext --moduleresolution nodenext lib/syn-html-parser.js && node lib/correct-types.js",
+    "check-types": "tsc",
     "test": "mocha",
-    "preversion": "npm run copy-types && npm test",
-    "prepublish": "npm test"
+    "preversion": "npm run check-types && npm run create-types && npm test"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +20,7 @@
     "parse5": "^7.1.2"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.1"
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.15.12"
   }
 }
